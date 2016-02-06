@@ -40,6 +40,7 @@ class MyWindow(Gtk.Window):
 
         self.textview = Gtk.TextView()
         self.textview.set_editable(False)
+        self.textview.set_cursor_visible(False)
         self.textview.set_wrap_mode(Gtk.WrapMode.WORD)
         self.textbuffer = self.textview.get_buffer()
         scrolledWindow.add(self.textview)
@@ -67,7 +68,8 @@ class MyWindow(Gtk.Window):
         while True:
             msg = s.recvfrom(1024)
             if not msg: sys.exit(0)
-            self.textbuffer.insert_at_cursor(msg[0].decode() + "\n")
+            end_iter = self.textbuffer.get_end_iter()
+            self.textbuffer.insert(end_iter, msg[0].decode() + "\n")
 
     def change_nickname(self, nickname):
         if self.nickname != nickname:
