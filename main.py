@@ -20,8 +20,7 @@ class MyWindow(Gtk.Window):
     def __init__(self):
         Gtk.Window.__init__(self, title="Twale 3")
 
-        self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
-        self.vbox.set_border_width(12)
+        self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.add(self.vbox)
 
         self.create_receiver()
@@ -47,19 +46,19 @@ class MyWindow(Gtk.Window):
 
     def create_sender(self):
         self.box = Gtk.Box(spacing=6)
-        self.vbox.pack_start(self.box, True, True, 0)
+        self.box.set_border_width(6)
+        self.vbox.pack_start(self.box, False, False, 0)
 
         self.entry = Gtk.Entry()
+        self.entry.connect("key-press-event", self.key_press)
         self.box.pack_start(self.entry, True, True, 0)
 
-        self.button = Gtk.Button(label="Envoyer")
-        self.button.connect("clicked", self.on_button_clicked)
-        self.box.pack_start(self.button, True, True, 0)
-
-    def on_button_clicked(self, widget):
-        if self.entry.get_text():
+    def key_press(self, widget, event):
+        if event.keyval == 65293 and self.entry.get_text():
             self.send(self.nickname + " : " + self.entry.get_text())
             self.entry.set_text("")
+            return True
+        return False
 
     def send(self, msg):
         s.sendto(bytes(msg, "utf-8"), addr)
