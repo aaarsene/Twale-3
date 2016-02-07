@@ -8,26 +8,67 @@ import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 
-addr = ('192.168.0.255', 12345)
+addr = ('127.0.0.1', 12345)
 
 s = socket(AF_INET, SOCK_DGRAM)
 s.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
 s.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-s.bind(addr)
+
+class DialogConnection(Gtk.Dialog):
+
+    def __init__(self, parent):
+        Gtk.Dialog.__init__(self, "Connection", parent, 0,
+            (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+             Gtk.STOCK_OK, Gtk.ResponseType.OK))
+
+        self.nickname = "John Doe"
+
+        box = self.get_content_area()
+        grid = Gtk.Grid()
+        grid.set_row_spacing(6)
+        grid.set_column_spacing(12)
+        grid.set_border_width(18)
+        box.add(grid)
+
+        self.labelNick = Gtk.Label()
+        self.labelNick.set_markup('<span color="#888A85">Nickname</span>')
+        self.labelNick.set_alignment(xalign=1, yalign=0.5)
+        self.entryNick = Gtk.Entry()
+        self.labelIP = Gtk.Label()
+        self.labelIP.set_markup('<span color="#888A85">Broadcast Address</span>')
+        self.labelIP.set_alignment(xalign=1, yalign=0.5)
+        self.entryIP = Gtk.Entry()
+        self.entryIP.set_max_length(15)
+
+        grid.attach(self.labelNick, 0, 0, 1, 1)
+        grid.attach(self.entryNick, 1, 0, 1, 1)
+        grid.attach(self.labelIP, 0, 1, 1, 1)
+        grid.attach(self.entryIP, 1, 1, 1, 1)
+
+        self.show_all()
 
 class MyWindow(Gtk.Window):
 
     def __init__(self):
         Gtk.Window.__init__(self, title="Twale 3")
-
+        self.set_default_size(480,360)
         self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.add(self.vbox)
 
         self.create_receiver()
+        self.vbox.pack_start(Gtk.HSeparator(), False, False, 0)
         self.create_sender()
 
-        self.nickname = "Druz"
+        self.show_all()
 
+        dialog = DialogConnection(self)
+        dialog.run()
+
+        self.nickname = dialog.entryNick.get_text()
+        addr = (dialog.entryIP.get_text(), 12345)
+
+        s.bind(addr)
+        dialog.destroy()
 
         Thread(target=self.recv).start()
 
