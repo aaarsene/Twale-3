@@ -65,6 +65,7 @@ class MyWindow(Gtk.Window):
         dialog.run()
 
         self.nickname = dialog.entryNick.get_text()
+        global addr
         addr = (dialog.entryIP.get_text(), 12345)
 
         s.bind(addr)
