@@ -73,6 +73,8 @@ class MyWindow(Gtk.Window):
 
         Thread(target=self.recv).start()
 
+        self.send(self.nickname + " joined the chat")
+
     def create_receiver(self):
         scrolledWindow = Gtk.ScrolledWindow()
         scrolledWindow.set_hexpand(True)
@@ -121,5 +123,7 @@ win = MyWindow()
 win.connect("delete-event", Gtk.main_quit)
 win.show_all()
 Gtk.main()
+
+win.send(win.nickname + " left the chat")
 
 s.close()
