@@ -52,9 +52,14 @@ class MyWindow(Gtk.Window):
     def __init__(self):
         Gtk.Window.__init__(self, title="Twale 3")
         self.set_default_size(480,360)
+        self.paned = Gtk.Paned()
+        self.add(self.paned)
         self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        self.add(self.vbox)
+        self.paned.add2(self.vbox)
 
+        self.nickname = "Unknown"
+
+        self.create_nicklist()
         self.create_receiver()
         self.vbox.pack_start(Gtk.HSeparator(), False, False, 0)
         self.create_sender()
@@ -65,6 +70,7 @@ class MyWindow(Gtk.Window):
         dialog.run()
 
         self.nickname = dialog.entryNick.get_text()
+        self.ownNick.set_label(self.nickname)
         global addr
         addr = (dialog.entryIP.get_text(), 12345)
 
@@ -97,6 +103,14 @@ class MyWindow(Gtk.Window):
         self.entry.connect("key-press-event", self.key_press)
         self.box.pack_start(self.entry, True, True, 0)
 
+    def create_nicklist(self):
+        self.nickPanel = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.paned.add1(self.nickPanel)
+        self.ownNick = Gtk.Button.new_with_label(self.nickname)
+        self.ownNick.set_border_width(6)
+        self.nickPanel.pack_end(self.ownNick, False, False, 0)
+        self.nickPanel.pack_end(Gtk.HSeparator(), False, False, 0)
+
     def key_press(self, widget, event):
         if event.keyval == 65293 and self.entry.get_text():
             self.send(self.nickname + " : " + self.entry.get_text())
@@ -109,10 +123,13 @@ class MyWindow(Gtk.Window):
 
     def recv(self):
         while True:
-            msg = s.recvfrom(1024)
-            if not msg: sys.exit(0)
-            end_iter = self.textbuffer.get_end_iter()
-            self.textbuffer.insert(end_iter, msg[0].decode() + "\n")
+            try:
+                msg = s.recvfrom(1024)
+            except:
+                sys.exit(0)
+            if msg:
+                end_iter = self.textbuffer.get_end_iter()
+                self.textbuffer.insert(end_iter, msg[0].decode() + "\n")
 
     def change_nickname(self, nickname):
         if self.nickname != nickname:
