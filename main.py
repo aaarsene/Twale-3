@@ -143,4 +143,9 @@ Gtk.main()
 
 win.send(win.nickname + " left the chat")
 
+# Faut pas demander pourquoi mais ces deux lignes aident à quitter
+addr = ('127.0.0.1', 12345)
+s.connect(addr)
+
+s.shutdown(SHUT_RDWR)
 s.close()
