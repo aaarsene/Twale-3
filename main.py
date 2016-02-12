@@ -3,6 +3,7 @@
 from socket import *
 from threading import Thread
 import sys
+import pickle
 
 import gi
 gi.require_version('Gtk', '3.0')
@@ -79,7 +80,7 @@ class MyWindow(Gtk.Window):
 
         Thread(target=self.recv).start()
 
-        self.send(self.nickname + " joined the chat")
+        self.send((self.nickname, "join"))
 
     def create_receiver(self):
         scrolledWindow = Gtk.ScrolledWindow()
@@ -113,13 +114,15 @@ class MyWindow(Gtk.Window):
 
     def key_press(self, widget, event):
         if event.keyval == 65293 and self.entry.get_text():
-            self.send(self.nickname + " : " + self.entry.get_text())
+            data = (self.nickname, "msg", self.entry.get_text())
+            self.send(data)
             self.entry.set_text("")
             return True
         return False
 
-    def send(self, msg):
-        s.sendto(bytes(msg, "utf-8"), addr)
+    def send(self, data):
+        msg = pickle.dumps(data)
+        s.sendto(msg, addr)
 
     def recv(self):
         while True:
@@ -127,9 +130,18 @@ class MyWindow(Gtk.Window):
                 msg = s.recvfrom(1024)
             except:
                 sys.exit(0)
-            if msg:
-                end_iter = self.textbuffer.get_end_iter()
-                self.textbuffer.insert(end_iter, msg[0].decode() + "\n")
+            if msg[1]:
+                data = pickle.loads(msg[0])
+                if (data[1] == "msg"):
+                    end_iter = self.textbuffer.get_end_iter()
+                    self.textbuffer.insert(end_iter, data[0] + " : " + data[2] + "\n")
+                elif (data[1] == "join"):
+                    end_iter = self.textbuffer.get_end_iter()
+                    self.textbuffer.insert(end_iter, data[0] + " joined the chat" + "\n")
+                elif (data[1] == "leave"):
+                    end_iter = self.textbuffer.get_end_iter()
+                    self.textbuffer.insert(end_iter, data[0] + " left the chat" + "\n")
+
 
     def change_nickname(self, nickname):
         if self.nickname != nickname:
@@ -141,7 +153,7 @@ win.connect("delete-event", Gtk.main_quit)
 win.show_all()
 Gtk.main()
 
-win.send(win.nickname + " left the chat")
+win.send((win.nickname, "leave"))
 
 # Faut pas demander pourquoi mais ces deux lignes aident à quitter
 addr = ('127.0.0.1', 12345)
